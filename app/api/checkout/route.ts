@@ -1,18 +1,31 @@
 import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+import Stripe from "stripe";
+import { createClient } from "@supabase/supabase-js";
 
+// Inicializa o Stripe com a chave secreta do ambiente
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: "2025-10-29.clover",
+});
+
+// Inicializa o Supabase com as variáveis do ambiente
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+/**
+ * Este endpoint é chamado quando o usuário inicia o checkout.
+ * Ele cria uma sessão de pagamento no Stripe com base no produto do Supabase.
+ */
 export async function POST(req: Request) {
   try {
     const { productId } = await req.json();
 
-    const supabase = await createServerSupabaseClient();
+    if (!productId) {
+      return NextResponse.json({ error: "productId é obrigatório" }, { status: 400 });
+    }
 
-    // Pega usuário logado (se existir)
-    const { data: authData } = await supabase.auth.getUser();
-    const user = authData?.user ?? null;
-
-    // Busca o produto
+    // Busca o produto no Supabase
     const { data: product, error } = await supabase
       .from("products")
       .select("*")
@@ -20,44 +33,33 @@ export async function POST(req: Request) {
       .single();
 
     if (error || !product) {
-      return NextResponse.json(
-        { error: "Product not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
     }
 
-    // Criação da sessão Stripe
+    // Cria uma sessão de checkout no Stripe
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-
       payment_method_types: ["card"],
-
-      metadata: {
-        productId: product.id,
-      },
-
-      client_reference_id: user?.id ?? undefined,
-
+      mode: "payment",
       line_items: [
         {
           price_data: {
             currency: "brl",
             product_data: {
-              name: product.title,
+              name: product.name,
+              description: product.description,
             },
-            unit_amount: product.price,
+            unit_amount: Math.round(product.price * 100), // Stripe usa centavos
           },
           quantity: 1,
         },
       ],
-
-      success_url: `${process.env.NEXT_PUBLIC_URL}/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_URL}/cancel`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cancel`,
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (error) {
-    console.error("Checkout error:", error);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  } catch (err: any) {
+    console.error("Erro no checkout:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
