@@ -1,65 +1,59 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
+import { stripe } from "@/lib/stripe";
+import { createServerSupabaseClient } from "@/lib/supabase-server";
 
-// Inicializa o Stripe com a chave secreta do ambiente
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2025-10-29.clover",
-});
-
-// Inicializa o Supabase com as variáveis do ambiente
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-/**
- * Este endpoint é chamado quando o usuário inicia o checkout.
- * Ele cria uma sessão de pagamento no Stripe com base no produto do Supabase.
- */
 export async function POST(req: Request) {
   try {
     const { productId } = await req.json();
 
-    if (!productId) {
-      return NextResponse.json({ error: "productId é obrigatório" }, { status: 400 });
-    }
+    console.log("🟢 [API] Iniciando checkout para o produto:", productId);
 
-    // Busca o produto no Supabase
+    const supabase = await createServerSupabaseClient();
     const { data: product, error } = await supabase
       .from("products")
       .select("*")
       .eq("id", productId)
       .single();
 
-    if (error || !product) {
-      return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
+    if (error) {
+      console.error("❌ [Supabase error]:", error.message);
+      return NextResponse.json({ error: "Database error" }, { status: 500 });
     }
 
-    // Cria uma sessão de checkout no Stripe
+    if (!product) {
+      console.warn("⚠️ [Produto não encontrado]:", productId);
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    console.log("✅ [Produto encontrado]:", product);
+
+    if (!process.env.NEXT_PUBLIC_URL) {
+      console.error("❌ NEXT_PUBLIC_URL não definida!");
+      return NextResponse.json({ error: "Config error: URL missing" }, { status: 500 });
+    }
+
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
       mode: "payment",
+      payment_method_types: ["card"],
       line_items: [
         {
           price_data: {
             currency: "brl",
-            product_data: {
-              name: product.name,
-              description: product.description,
-            },
-            unit_amount: Math.round(product.price * 100), // Stripe usa centavos
+            product_data: { name: product.title },
+            unit_amount: product.price, // preço deve estar em centavos
           },
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cancel`,
+      success_url: `${process.env.NEXT_PUBLIC_URL}/success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_URL}/cancel`,
     });
 
+    console.log("✅ [Stripe checkout criado]:", session.id);
+
     return NextResponse.json({ url: session.url });
-  } catch (err: any) {
-    console.error("Erro no checkout:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error: any) {
+    console.error("❌ [Checkout error]:", error.message || error);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
