@@ -50,3 +50,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
+//Tudo funcionando e configurado para registrar o pagamento no Banco de dados no Versel! ok
