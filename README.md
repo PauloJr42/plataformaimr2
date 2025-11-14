@@ -1,305 +1,68 @@
-# 📘 Plataforma IMR — Documentação Geral das Funcionalidades
+<div align="center">
 
+# 🚀 Plataforma IMR  
+### Sistema completo de cursos online com autenticação, pagamentos e painel moderno
 
-A Plataforma IMR é um sistema completo de cursos online desenvolvido em Next.js App Router, com foco em performance, segurança, escalabilidade e integração com serviços profissionais.
-
-O objetivo é permitir que usuários se cadastrem, validem identidade por email, comprem cursos via Stripe e tenham acesso imediato ao conteúdo adquirido — tudo isso com uma UX moderna e responsiva construída com Tailwind + Shadcn/UI.
-
-> **Status do Projeto:** Em desenvolvimento ativo
->
-> **Última atualização:** 2025
+![cover](https://dummyimage.com/1200x350/0f0f0f/ffffff&text=Plataforma+IMR+%7C+Next.js+Stripe+Supabase)
 
 ---
 
-# 🚀 Visão Geral da Plataforma
+## 🔥 Status: Em desenvolvimento ativo  
+Última atualização: **2025**
 
-A **Plataforma IMR** é um sistema moderno e escalável criado com **Next.js (App Router)**, com backend integrado, frontend dinâmico, arquitetura organizada e recursos essenciais para operação real em produção.
+![Next.js Badge](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=nextdotjs)
+![Supabase Badge](https://img.shields.io/badge/Supabase-Postgres-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Stripe Badge](https://img.shields.io/badge/Stripe-Payments-635BFF?style=for-the-badge&logo=stripe)
+![Tailwind Badge](https://img.shields.io/badge/TailwindCSS-Framework-38B2AC?style=for-the-badge&logo=tailwindcss)
+![Shadcn Badge](https://img.shields.io/badge/shadcn/ui-Components-white?style=for-the-badge)
+![License Badge](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
 
-O sistema já possui:
-
-* 🔐 Autenticação completa com verificação por e-mail
-* 📧 Código de validação enviado por e-mail
-* 👤 Fluxo de cadastro seguro com criptografia de senha
-* 🛍️ Sistema de confirmação de compra (implementado no início do projeto)
-* 🌐 API totalmente funcional em rotas server-side do Next.js
-* 📡 Testes manuais via Node.js com `fetch`
-* 🧩 Estrutura modular pronta para escalar para dashboard, módulos administrativos e mais
-
----
-🏛️ Tecnologias Utilizadas (Stack Oficial)
-
-A plataforma utiliza tecnologias modernas que são padrão em empresas de ponta:
-
-Frontend & Fullstack
-
-Next.js 14 (App Router) – SSR, RSC, Edge Ready
-
-React 18+
-
-TypeScript
-
-Tailwind CSS – estilização rápida e responsiva
-
-Shadcn/UI – biblioteca de componentes premium
-
-Lucide Icons – ícones modernos
-
-Zod – validação de dados
-
-Backend
-
-Next.js API Routes / Route Handlers
-
-Supabase
-
-Autenticação
-
-Banco de dados Postgres
-
-RLS (Row Level Security)
-
-Realtime
-
-Stripe
-
-Checkout
-
-Webhooks
-
-Registro de pagamentos
-
-Associação pagamento → curso no Supabase
-
-Infraestrutura
-
-Vercel — deploy do frontend e backend juntos
-
-Supabase Cloud — base de dados e autenticação
-
-Stripe Dashboard — controle dos pagamentos
-
-# 🧩 Funcionalidades Implementadas
-
-A seguir está a **lista completa e detalhada** de tudo que funciona hoje na plataforma.
+</div>
 
 ---
 
-🎯 Funcionalidades Já Implementadas
+# 📘 **Descrição Geral**
 
-Abaixo está a lista oficial e completa de tudo que JÁ está funcionando no projeto.
+A **Plataforma IMR** é um sistema completo para cursos online desenvolvido com:
 
-🔐 1. Sistema de Autenticação Completo
+- **Next.js App Router (fullstack)**
+- **Supabase (autenticação + banco de dados)**
+- **Stripe (pagamentos e webhooks)**
+- **Tailwind CSS + Shadcn/UI (frontend moderno)**
 
-Cadastro com:
-✔ Nome
-✔ Sobrenome
-✔ Email
-✔ Telefone
-✔ Senha forte validada por critérios (maiúscula, minúscula, número, especial, 8+ chars)
+Com este ecossistema, o usuário consegue:
 
-Login / Logout
-
-Recuperação de senha
-
-Controle de sessão persistente
-
-Hook próprio useAuth() integrado ao Supabase
-
-Registro automático do usuário na tabela users após signup
-
-📧 2. Verificação de Email com Código
-
-Envio de código via email usando serviço confiável
-
-Código armazenado e validado via backend
-
-Login bloqueado até a verificação acontecer
-
-Prevenção contra brute force e tentativas repetidas
-
-💳 3. Integração Completa com Stripe
-
-A plataforma já possui integração funcional com toda a cadeia do Stripe:
-
-✔ Checkout
-
-Criação de sessão de pagamento
-
-Informações do usuário e curso enviadas ao Stripe
-
-✔ Webhooks (implementado corretamente)
-
-Recebe notificações do Stripe mesmo com o sistema offline
-
-Confirma transações
-
-Valida assinatura do evento
-
-Atualiza a base Supabase com:
-
-ID do pagamento
-
-User ID
-
-Course ID
-
-Valor
-
-Status
-
-Evita duplicações com controle idempotente
-
-✔ Registro de Compra
-
-Após pagamento ser aprovado → grava automaticamente no Supabase:
-
-purchases
-
-user_courses
-
-Garantido via webhook (não depende do cliente)
-
-🧩 4. Integração Total com o Supabase
-
-Tabela users
-
-Tabela purchases
-
-Tabela courses
-
-Tabela user_courses
-
-RLS configurado
-
-Realtime funcionando com presença (usuários online)
-
-Inclui:
-
-✔ Presença em tempo real (Realtime)
-
-Componente funcionando:
-
-Lista de usuários online
-
-Atualiza ao entrar/sair
-
-Indicador verde ao vivo
-
-🛒 5. Fluxo Completo de Compra
-
-Usuário logado escolhe o curso
-
-Inicia o checkout Stripe
-
-Stripe redireciona para pagamento seguro
-
-Webhook recebe confirmação
-
-Compra é registrada no Supabase
-
-Usuário ganha acesso ao conteúdo automaticamente
-
-🌗 6. Tema Claro/Escuro (Dark Mode)
-
-Persistência do tema
-
-Estilização completa usando Tailwind
-
-Inputs, botões e formulários adaptados
-
-Componentes Shadcn estilizados para os dois temas
-
-🧮 7. Calculadora de BTUs Inteligente
-
-Interface moderna usando Tailwind + Lucide
-
-Janela arrastável com controle completo do DOM
-
-Cálculo baseado em:
-
-Área
-
-Exposição solar
-
-Pessoas
-
-Fontes de calor
-
-Resultado formatado e responsivo
-
-📦 8. Arquitetura Organizada e Escalável
-
-Padrão de pastas limpo
-
-API Routes isoladas
-
-Serviços separados por domínio
-
-Middlewares próprios
-
-Tipagem TypeScript forte
-
-Nada de gambiarra
-
-🚀 9. Deploy Profissional
-
-Deploy contínuo na Vercel
-
-Variáveis de ambiente configuradas corretamente
-
-Webhooks do Stripe apontando para produção
-
-Build otimizado com cache e assets minificados
+✔ Cadastrar-se  
+✔ Validar e-mail com código  
+✔ Comprar cursos via Stripe  
+✔ Receber liberação instantânea do conteúdo  
+✔ Acessar tudo em um painel responsivo  
 
 ---
-📚 Como Rodar o Projeto
-git clone https://github.com/SEU-USUARIO/plataforma-imr.git
-cd plataforma-imr
-npm install
-npm run dev
+
+# 🏗️ **Arquitetura Geral**
+
+```mermaid
+flowchart TD
+    A[Frontend - Next.js 14] --> B[API Routes - Next.js]
+    B --> C[Supabase - Auth]
+    B --> D[Supabase - Postgres DB]
+    A --> E[Stripe Checkout]
+    E --> F[Stripe Webhooks -> API]
+    F --> D
+    D --> G[User Courses / Acesso Liberado]
 
 
-Crie um arquivo .env.local com:
 
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE=
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-EMAIL_SERVER_USER=
-EMAIL_SERVER_PASS=
-EMAIL_SERVER_HOST=
-EMAIL_FROM=
 
-🔄 Atualizações Futuras (Roadmap Oficial)
 
-Área do aluno completa
 
-Upload e streaming de video-aulas
 
-Sistema de módulos e progresso
 
-Dashboard admin
 
-Faturas e histórico de compras
 
-Webhooks adicionais
 
-Chat interno aluno → suporte
 
-Integração WhatsApp Business API (se for viável)
 
-Notificações push
 
-# 🏆 Conclusão
-
-A Plataforma IMR já possui um conjunto de funcionalidades **prontas e operacionais**, com qualidade profissional e seguindo padrões modernos de engenharia de software.
-
-Este README reflete:
-
-* Organização
-* Clareza
-* Profissionalismo
-* Arquitetura escalável
-* Domínio técnico
 
