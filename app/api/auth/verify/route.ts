@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function POST(req: Request) {
   try {
@@ -12,13 +12,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    
 
     // busca o usuário
-    const { data: user, error } = await supabase
+    const { data: user, error } = await supabaseAdmin
       .from("users_custom")
       .select("*")
       .eq("email", email)
@@ -37,7 +34,7 @@ export async function POST(req: Request) {
     }
 
     // Atualiza status e remove o código
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from("users_custom")
       .update({
         status: "active",

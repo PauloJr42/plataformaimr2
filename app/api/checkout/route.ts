@@ -32,6 +32,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Config error: URL missing" }, { status: 500 });
     }
 
+    // garante inteiro (centavos) e não-negativo
+    const unitAmount = Math.max(0, Math.floor(Number(product.price)));
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -40,7 +43,7 @@ export async function POST(req: Request) {
           price_data: {
             currency: "brl",
             product_data: { name: product.title },
-            unit_amount: product.price, // preço deve estar em centavos
+            unit_amount: unitAmount, // preço deve estar em centavos
           },
           quantity: 1,
         },
