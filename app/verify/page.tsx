@@ -1,13 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function VerifyPage() {
+     const router = useRouter();
 
-    
-     const [email, setEmail] = useState("");
+   const [email, setEmail] = useState("");
      const [code, setCode] = useState("");
     const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    if (msg === "Conta verificada com sucesso!") {
+      const timer = setTimeout(() => {
+        router.push("/login");
+      }, 2000); // 2 segundos para o usuário ver a mensagem
+
+      return () => clearTimeout(timer);
+    }
+  }, [msg]);
+
+    
+    
 
   async function handleVerify(e: any) {
     e.preventDefault();
