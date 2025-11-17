@@ -96,7 +96,7 @@ export async function POST(req: Request) {
       path: "/",
       httpOnly: true,
       secure,
-      sameSite: "Strict",
+      sameSite:"None",  // PERMITE redirecionamento externo (Stripe → seu site),
     });
 
     // 📌 Enviar email (placeholder — depois conectamos ao Resend)

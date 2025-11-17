@@ -1,63 +1,72 @@
-import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
-import { createServerSupabaseClient } from "@/lib/supabase-server";
+// app/api/checkout/route.ts
+import { NextRequest } from "next/server";
+import Stripe from "stripe";
+import { cookies } from "next/headers";
+import { verifyToken } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
-export async function POST(req: Request) {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-10-29.clover",
+});
+
+export async function POST(req: NextRequest) {
   try {
-    const { productId } = await req.json();
+    const token = (await cookies()).get(process.env.TOKEN_NAME!)?.value;
+    if (!token) return new Response("Unauthorized", { status: 401 });
 
-    console.log("🟢 [API] Iniciando checkout para o produto:", productId);
+    let payload;
+    try {
+      payload = verifyToken(token);
+    } catch {
+      return new Response("Invalid token", { status: 401 });
+    }
 
-    const supabase = await createServerSupabaseClient();
-    const { data: product, error } = await supabase
+    const userId = payload.sub;
+
+    const body = await req.json();
+    const { productId } = body;
+
+    if (!productId) {
+      return new Response("Missing productId", { status: 400 });
+    }
+
+    // Buscar produto
+    const { data: product } = await supabaseAdmin
       .from("products")
       .select("*")
       .eq("id", productId)
-      .single();
-
-    if (error) {
-      console.error("❌ [Supabase error]:", error.message);
-      return NextResponse.json({ error: "Database error" }, { status: 500 });
-    }
+      .maybeSingle();
 
     if (!product) {
-      console.warn("⚠️ [Produto não encontrado]:", productId);
-      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+      return new Response("Product not found", { status: 404 });
     }
-
-    console.log("✅ [Produto encontrado]:", product);
-
-    if (!process.env.NEXT_PUBLIC_URL) {
-      console.error("❌ NEXT_PUBLIC_URL não definida!");
-      return NextResponse.json({ error: "Config error: URL missing" }, { status: 500 });
-    }
-
-    // garante inteiro (centavos) e não-negativo
-    const unitAmount = Math.max(0, Math.floor(Number(product.price)));
 
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
       payment_method_types: ["card"],
       line_items: [
         {
           price_data: {
             currency: "brl",
-            product_data: { name: product.title },
-            unit_amount: unitAmount, // preço deve estar em centavos
+            product_data: {
+              name: product.title,
+            },
+            unit_amount: product.price * 100, // centavos
           },
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_URL}/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_URL}/cancel`,
+      mode: "payment",
+      success_url: `${process.env.NEXT_PUBLIC_URL}/dashboard`,
+      cancel_url: `${process.env.NEXT_PUBLIC_URL}/dashboard`,
+      metadata: {
+        userId,
+        productId: productId.toString(),
+      },
     });
 
-    console.log("✅ [Stripe checkout criado]:", session.id);
-
-    return NextResponse.json({ url: session.url });
-  } catch (error: any) {
-    console.error("❌ [Checkout error]:", error.message || error);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return Response.json({ url: session.url });
+  } catch (err) {
+    console.error("CHECKOUT ERROR:", err);
+    return new Response("Internal server error", { status: 500 });
   }
 }
-//funcionando correto no deploy versel

@@ -18,7 +18,7 @@ export default function LoginPage() {
         useEffect(() => {
             if (msg === "Login efetuado com sucesso.") {
               const timer = setTimeout(() => {
-                router.push("/verify");
+                router.push("/dashboard");
               }, 2000); // 2 segundos para o usuário ver a mensagem
         
               return () => clearTimeout(timer);

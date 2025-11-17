@@ -114,7 +114,7 @@ export async function POST(req: Request) {
       path: "/",
       httpOnly: true,
       secure,
-      sameSite: "Strict",
+      sameSite: "Lax",  // PERMITE redirecionamento externo (Stripe → seu site)
     });
 
     console.log("[auth/login] success", { email, userId: user.id });
