@@ -50,11 +50,11 @@ export default async function DashboardPage() {
             className="border p-4 rounded-lg shadow-sm bg-white"
           >
             <h2 className="font-semibold text-lg">
-              {item.products?.title ?? "Produto"}
+              {item.products?.[0]?.title ?? ""}
             </h2>
 
             <p className="text-sm text-gray-600 mb-2">
-              {item.products?.description ?? ""}
+              {item.products?.[0]?.description ?? ""}
             </p>
 
             <a
