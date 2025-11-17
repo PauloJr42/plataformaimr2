@@ -1,4 +1,4 @@
-// app/api/files/[product_id]/route.ts
+//app/api/files/[product_id]/route.ts
 import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -11,7 +11,7 @@ export async function GET(
 ) {
   try {
     // 1. Pegar cookie JWT
-    const token = (await cookies()).get(process.env.TOKEN_NAME!)?.value;
+    const token = (cookies()).get(process.env.TOKEN_NAME!)?.value;
     if (!token) {
       return new Response("Not authenticated", { status: 401 });
     }
